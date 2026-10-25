@@ -1,0 +1,610 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Roshan Rajkumar</title>
+<meta name="description" content="Roshan Rajkumar — Application Security Engineer in Hamburg. API security, DevSecOps and LLM security.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+/* Layout: the site is an API. Home = GET / with clickable endpoint tiles; each tile opens a section view.
+   Two depths: Recruiter view (clean) and Engineer view (adds raw HTTP responses + technical detail). */
+:root{
+  --bg:#090b10; --surface:#11151f; --raise:#171c28; --ink:#e9ecf4; --muted:#9aa2b6; --line:#232a39;
+  --accent:#8a92ff; --accent-soft:#1d2142; --accent-ink:#090b10; --hot:#ff5c8a;
+  --ok:#43d39a; --ok-soft:#0f2a20; --pending:#f3b546; --pending-soft:#2c2210; --empty:#a3aabb; --empty-soft:#1c2130;
+  --code-bg:#06070c; --code-ink:#dbe0f4; --code-dim:#7d86a6; --code-key:#a3abff; --code-str:#7fe2b9; --code-num:#ffc27a;
+  --dot:rgba(138,146,255,.10);
+  --f-display:"Bricolage Grotesque", "Arial Narrow", system-ui, sans-serif;
+  --f-body:"Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --r:14px; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:6px}
+.wrap{max-width:1120px;margin:0 auto}
+.mono{font-family:var(--f-mono)}
+
+/* top bar */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:color-mix(in srgb,var(--bg) 88%,transparent);
+  backdrop-filter:blur(10px);border-bottom:1px solid var(--line);margin:0 calc(-1 * max(16px,env(safe-area-inset-left,0px)))}
+.bar .wrap{display:flex;align-items:center;gap:12px 16px;flex-wrap:wrap;padding-block:12px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.logo{font-family:var(--f-mono);font-weight:700;font-size:15px;color:var(--ink);text-decoration:none;letter-spacing:-.01em}
+.logo b{color:var(--accent)}
+.cmd{flex:1 1 220px;display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:6px 10px;min-width:0}
+.cmd label{font-family:var(--f-mono);font-size:13px;color:var(--accent);font-weight:700;white-space:nowrap}
+.cmd input{flex:1;min-width:0;border:0;background:transparent;color:var(--ink);font-family:var(--f-mono);font-size:13px;outline:none}
+.cmd kbd{font-family:var(--f-mono);font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:5px;padding:0 5px}
+.seg{display:inline-flex;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:3px}
+.seg button{border:0;background:transparent;color:var(--muted);font:600 13px var(--f-body);padding:6px 12px;border-radius:7px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+
+/* cover: rotating quote over a drifting hex dump */
+.cover{position:relative;overflow:hidden;margin:20px 0 0;border-radius:18px;border:1px solid var(--line);
+  background:radial-gradient(120% 140% at 85% 10%,#1a1f4a 0%,var(--code-bg) 55%);min-height:250px;display:flex;align-items:flex-end}
+.cover canvas{position:absolute;inset:0;width:100%;height:100%}
+.cover::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,var(--code-bg) 8%,transparent 70%);pointer-events:none}
+.q{position:relative;z-index:1;padding:28px clamp(18px,4vw,40px) 26px;display:grid;gap:10px;max-width:880px;min-width:0}
+.q .lbl{font-family:var(--f-mono);font-size:12px;color:var(--hot);letter-spacing:.08em;text-transform:uppercase}
+.q blockquote{margin:0;font-family:var(--f-display);font-weight:700;font-size:clamp(26px,4.2vw,46px);line-height:1.05;letter-spacing:-.025em;color:#fff;text-wrap:balance;transition:opacity .45s,transform .45s}
+.q blockquote.out{opacity:0;transform:translateY(8px)}
+.q cite{font-style:normal;font-family:var(--f-mono);font-size:13px;color:var(--code-dim)}
+.qdots{display:flex;gap:6px;margin-top:6px}
+.qdots button{width:22px;height:4px;border:0;border-radius:3px;background:#2b3248;cursor:pointer;padding:0}
+.qdots button[aria-current="true"]{background:var(--accent);width:36px}
+/* hero */
+.hero{display:grid;grid-template-columns:1.05fr .95fr;gap:40px;align-items:center;padding-block:44px 40px;position:relative}
+.hero::before{content:"";position:absolute;inset:0;z-index:-1;background-image:radial-gradient(var(--dot) 1.2px,transparent 1.2px);background-size:22px 22px;
+  mask-image:linear-gradient(to bottom,#000 40%,transparent)}
+.eyebrow{font-family:var(--f-mono);font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.live{display:inline-flex;align-items:center;gap:6px;color:var(--ok);background:var(--ok-soft);padding:2px 9px;border-radius:99px;letter-spacing:.04em}
+.live i{width:7px;height:7px;border-radius:50%;background:var(--ok);animation:pulse 2s infinite}
+@keyframes pulse{50%{opacity:.35}}
+h1{font-family:var(--f-display);font-weight:800;font-size:clamp(46px,8vw,96px);line-height:.92;letter-spacing:-.035em;margin:18px 0 18px;text-wrap:balance}
+h1 span{display:block;color:var(--accent)}
+.lede{font-size:clamp(17px,2vw,20px);color:var(--muted);max-width:34ch;margin:0 0 26px}
+.lede strong{color:var(--ink);font-weight:600}
+.ctas{display:flex;gap:10px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:8px;font:600 15px var(--f-body);padding:11px 18px;border-radius:10px;text-decoration:none;border:1px solid var(--line);color:var(--ink);background:var(--surface);cursor:pointer}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn:hover{transform:translateY(-1px)}
+
+/* http card */
+.http{background:var(--code-bg);color:var(--code-ink);border-radius:var(--r);font-family:var(--f-mono);font-size:13.5px;line-height:1.7;
+  box-shadow:0 30px 60px -30px rgba(16,19,40,.55);overflow:hidden;min-width:0}
+.http-top{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.07);color:var(--code-dim);font-size:12px}
+.http-top i{width:10px;height:10px;border-radius:50%;background:#2a2f45}
+.http-top span{margin-left:auto}
+.http pre{margin:0;padding:16px 18px 20px;overflow-x:auto;white-space:pre}
+.http .ln{display:block;animation:ln .35s both}
+.http .m{color:var(--code-key);font-weight:700}.http .k{color:var(--code-key)}.http .s{color:var(--code-str)}.http .n{color:var(--code-num)}.http .d{color:var(--code-dim)}
+.http .ok{color:#3ad69a;font-weight:700}
+@keyframes ln{from{opacity:0;transform:translateX(-6px)}}
+
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-block:1px solid var(--line);margin-bottom:44px}
+.stat{padding:22px 18px 20px;border-left:1px solid var(--line)}
+.stat:first-child{border-left:0;padding-left:0}
+.stat b{display:block;font-family:var(--f-display);font-size:clamp(30px,4vw,42px);font-weight:700;line-height:1;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.stat span{font-size:14px;color:var(--muted)}
+
+/* endpoint grid */
+.sec-h{display:flex;justify-content:space-between;align-items:end;gap:16px;flex-wrap:wrap;margin-bottom:16px}
+.sec-h h2{font-family:var(--f-display);font-size:28px;letter-spacing:-.02em;margin:0;line-height:1.1}
+.sec-h p{margin:0;color:var(--muted);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:64px}
+.tile{display:flex;flex-direction:column;gap:8px;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;cursor:pointer;color:var(--ink);font:inherit;
+  transition:transform .18s,border-color .18s,box-shadow .18s;min-width:0}
+.tile:hover{transform:translateY(-3px);border-color:var(--accent);box-shadow:0 14px 30px -18px var(--accent)}
+.tile .path{font-family:var(--f-mono);font-size:12.5px;color:var(--muted)}
+.tile .path b{color:var(--accent);margin-right:6px}
+.tile h3{font-family:var(--f-display);font-size:24px;letter-spacing:-.02em;margin:0;line-height:1.1}
+.tile p{margin:0;font-size:14px;color:var(--muted);flex:1}
+.tile.big{grid-column:span 2}
+.pill{align-self:flex-start;font-family:var(--f-mono);font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:99px;letter-spacing:.02em;white-space:nowrap}
+.s2{color:var(--ok);background:var(--ok-soft)}.s202{color:var(--pending);background:var(--pending-soft)}.s204{color:var(--empty);background:var(--empty-soft)}
+
+/* section view */
+.view{padding-block:36px 72px}
+.back{font-family:var(--f-mono);font-size:13px;color:var(--muted);text-decoration:none;display:inline-flex;gap:6px;margin-bottom:22px}
+.back:hover{color:var(--accent)}
+.vhead{display:flex;flex-direction:column;gap:10px;margin-bottom:28px;max-width:70ch}
+.vhead .path{font-family:var(--f-mono);font-size:14px;color:var(--muted)}
+.vhead .path b{color:var(--accent);margin-right:8px}
+.vhead h2{font-family:var(--f-display);font-weight:800;font-size:clamp(40px,6vw,64px);letter-spacing:-.035em;line-height:.95;margin:0;text-wrap:balance}
+.vhead p{color:var(--muted);font-size:18px;margin:0}
+.hint{font-size:13.5px;color:var(--muted);background:var(--raise);border:1px dashed var(--line);border-radius:10px;padding:8px 12px;align-self:flex-start}
+.hint button{border:0;background:none;color:var(--accent);font:600 13.5px var(--f-body);cursor:pointer;padding:0;text-decoration:underline}
+body.eng .hint{display:none}
+
+.cards{display:grid;gap:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:24px;display:grid;gap:14px;min-width:0}
+.card-top{display:flex;justify-content:space-between;gap:12px;align-items:start;flex-wrap:wrap}
+.card h3{font-family:var(--f-display);font-size:26px;letter-spacing:-.02em;margin:0;line-height:1.1}
+.card .sub{font-family:var(--f-mono);font-size:12.5px;color:var(--muted);margin-top:4px}
+.card p{margin:0;max-width:68ch}
+.facts{display:flex;flex-wrap:wrap;gap:8px 22px;margin:0;padding:0;list-style:none}
+.facts li{font-size:14px}.facts li span{display:block;font-family:var(--f-mono);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-family:var(--f-mono);font-size:12px;padding:3px 9px;border-radius:7px;background:var(--raise);border:1px solid var(--line);color:var(--ink)}
+.card ul.pts{margin:0;padding-left:18px;max-width:68ch}.card ul.pts li{margin-bottom:4px}
+.links{display:flex;gap:14px;flex-wrap:wrap;font-weight:600;font-size:14.5px}
+
+.deep{display:none;border-top:1px dashed var(--line);padding-top:14px;gap:12px}
+body.eng .deep{display:grid}
+.deep h4{font-family:var(--f-mono);font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin:0}
+.deep p,.deep li{font-size:15px}
+
+.todo{border:1.5px dashed var(--pending);background:var(--pending-soft);border-radius:10px;padding:10px 14px;font-size:13.5px;color:var(--ink)}
+.todo b{font-family:var(--f-mono);font-size:11px;color:var(--pending);letter-spacing:.08em;display:block;margin-bottom:2px}
+.todo ul{margin:0;padding-left:18px}
+
+/* pipeline */
+.pipe{display:flex;flex-wrap:wrap;align-items:stretch;gap:8px}
+.step{flex:1 1 130px;background:var(--raise);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13.5px;min-width:0}
+.step b{display:block;font-family:var(--f-mono);font-size:11px;color:var(--accent);margin-bottom:2px}
+.arrow{align-self:center;font-family:var(--f-mono);color:var(--muted)}
+.loop{font-family:var(--f-mono);font-size:12.5px;color:var(--muted)}
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cmp > div{background:var(--raise);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:14.5px}
+.cmp b{font-family:var(--f-display);font-size:18px;display:block}
+
+/* timeline */
+.tl{display:grid;gap:0;border-left:2px solid var(--line);margin-left:6px}
+.tl .card{border:0;background:transparent;padding:4px 0 30px 26px;position:relative;border-radius:0}
+.tl .card::before{content:"";position:absolute;left:-8px;top:12px;width:14px;height:14px;border-radius:50%;background:var(--bg);border:3px solid var(--accent)}
+.when{font-family:var(--f-mono);font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.stack{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin-top:8px}
+.stack > div{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px}
+.stack h4{margin:0 0 8px;font-family:var(--f-mono);font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+h3.group{font-family:var(--f-display);font-size:22px;margin:30px 0 12px;letter-spacing:-.02em}
+
+.empty{background:var(--surface);border:1px dashed var(--line);border-radius:var(--r);padding:34px 24px;display:grid;gap:10px;max-width:70ch}
+.empty .code{font-family:var(--f-mono);font-size:44px;font-weight:700;color:var(--empty);line-height:1}
+
+.copy{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.copy code{font-family:var(--f-mono);font-size:15px;user-select:all;word-break:break-all}
+.copy button{margin-left:auto}
+
+.raw{display:none;margin-top:28px}
+body.eng .raw{display:block}
+.raw .http pre{max-height:420px;overflow:auto}
+
+footer{border-top:1px solid var(--line);padding-block:22px 34px;color:var(--muted);font-size:13px;font-family:var(--f-mono);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+
+@media (max-width:900px){
+  .hero{grid-template-columns:1fr;gap:28px;padding-block:36px 28px}
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .stat:nth-child(3){border-left:0;padding-left:0}
+  .stat:nth-child(n+3){border-top:1px solid var(--line)}
+}
+@media (max-width:520px){
+  .grid{grid-template-columns:1fr}.tile.big{grid-column:auto}
+  .cmp{grid-template-columns:1fr}.arrow{display:none}
+  .cmd kbd{display:none}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+<style>html,body{margin:0}</style>
+</head>
+<body>
+
+<header class="bar">
+  <div class="wrap">
+    <a class="logo" href="#" data-go="">roshan<b>.sec</b></a>
+    <form class="cmd" id="cmdForm" autocomplete="off">
+      <label for="cmd">GET /</label>
+      <input id="cmd" list="routes" placeholder="tools, research, experience…" aria-label="Go to section">
+      <kbd>/</kbd>
+      <datalist id="routes"></datalist>
+    </form>
+    <div class="seg" role="group" aria-label="Detail level">
+      <button type="button" id="mHr" aria-pressed="true">Recruiter</button>
+      <button type="button" id="mEng" aria-pressed="false">Engineer</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap" id="app"></main>
+
+<footer class="wrap">
+  <span>© 2026 Roshan Rajkumar · Hamburg</span>
+  <span id="foot">HTTP/1.1 200 OK</span>
+</footer>
+
+<script>
+/* ===== Edit everything below this line ===== */
+const SHOW_DRAFTS = false;           // set to false before going live: hides every item marked draft:true and all "Before publishing" boxes
+const GITHUB = "RoshanRajkumar1208"; // your GitHub username
+
+const PROFILE = {
+  name: "Roshan Rajkumar",
+  role: "Application Security Engineer",
+  city: "Hamburg, Germany",
+  available_from: "2026-12-01",
+  email: "roshanrajkumar1208@gmail.com",
+  linkedin: "https://www.linkedin.com/in/roshan-r-a838911b2",
+  focus: ["API security", "DevSecOps", "LLM security"]
+};
+
+const SECTIONS = {
+  tools: {
+    status: 200, title: "Tools", big: true,
+    tile: "Security tools I built to automate API testing and secure-code checks.",
+    lede: "Tools I built to make security testing faster and repeatable. Click into the technical view for how each one works.",
+    items: [
+      { name: "RAVEN", sub: "REST API Validation Engine",
+        summary: "A command-line tool that automates vulnerability detection and security testing for REST APIs. I built it during my application security internship at Oracle to take repetitive API checks off the manual test list.",
+        facts: [["Year","2021"],["Language","Python"],["Interface","CLI"],["Target","REST APIs"]],
+        stack: ["Python","REST","API security","Automation"],
+        deep: `<h4>How it works</h4><p>RAVEN takes REST endpoints as input, runs automated security checks against them and reports what it finds, so the same checks can run on every release instead of by hand.</p>`,
+        todo: ["Push the code to GitHub and add the repo link","List the exact checks RAVEN runs (auth, injection, input validation…)","Add a short demo GIF or sample terminal output from a real run","Add a 'Run in CI' example (GitHub Action)"],
+        links: [{ label: "Repository →", href: `https://github.com/${GITHUB}/raven`, draft: true }] },
+      { name: "Secure-Code Prompt Optimizer", sub: "GrIPS × EvoPrompt · M.Sc. research",
+        summary: "A framework that evolves the prompts given to large language models so the Python code they write contains fewer security flaws. Static analysis scores every generated program, and those scores steer the next round of prompts.",
+        facts: [["Year","2024–25"],["Where","TU Hamburg"],["Language","Python"],["Methods","GrIPS, EvoPrompt"]],
+        stack: ["LLMs","Prompt engineering","Genetic algorithms","SAST","Python"],
+        deep: `<h4>Pipeline</h4>
+          <div class="pipe">
+            <div class="step"><b>01 · population</b>Set of candidate prompts for a coding task</div><span class="arrow">→</span>
+            <div class="step"><b>02 · generate</b>LLM writes Python code from each prompt</div><span class="arrow">→</span>
+            <div class="step"><b>03 · scan</b>Static analysis finds vulnerabilities in the code</div><span class="arrow">→</span>
+            <div class="step"><b>04 · score</b>Fewer findings = fitter prompt</div><span class="arrow">→</span>
+            <div class="step"><b>05 · evolve</b>Best prompts are edited or recombined</div>
+          </div>
+          <div class="loop">↺ repeat until the prompt stops improving</div>
+          <h4>Two optimizers compared</h4>
+          <div class="cmp">
+            <div><b>GrIPS</b>Rule-based search. Makes small edits to the instruction (add, delete, swap, paraphrase phrases) and keeps edits that lower the vulnerability score.</div>
+            <div><b>EvoPrompt</b>LLM-guided evolution. The LLM itself performs crossover and mutation on the best prompts to breed the next generation.</div>
+          </div>`,
+        todo: ["Add the result: how much did vulnerabilities drop vs. the baseline prompt?","Name the SAST scanner and the LLM(s) you used","Link the repo and the thesis/report PDF"],
+        links: [{ label: "Repository →", href: `https://github.com/${GITHUB}/secure-prompt-optimizer`, draft: true }] },
+      { draft: true, name: "Next build", sub: "In the lab",
+        summary: "Slot for the next public tool, for example a Burp Suite extension or a GitHub Action that runs RAVEN on every pull request.",
+        facts: [["Status","Planned"]], stack: ["Burp Suite","Java/Kotlin","GitHub Actions"] }
+    ]
+  },
+  research: {
+    status: 200, title: "Research",
+    tile: "LLM security research, a published book chapter and blockchain projects.",
+    lede: "Where I go deeper than day-to-day testing: secure code from LLMs, published work, and systems built from scratch.",
+    items: [
+      { name: "Secure code generation with LLMs", sub: "Research project · TU Hamburg · Nov 2024 – Jun 2025",
+        summary: "Implemented and compared GrIPS and EvoPrompt for refining prompts so that LLM-generated Python code has fewer vulnerabilities, with static application security testing in the loop.",
+        stack: ["AI security","Prompt optimization","SAST"], links:[{label:"See the tool →", go:"tools"}] },
+      { name: "Blockchain-enabled Cyber Physical System: SmartGym", sub: "Book chapter · CRC Press, Taylor & Francis · 2019",
+        summary: "Chapter 10 of “Smart Cyber Physical Systems: Advances, Challenges and Opportunities”. A case study on using blockchain in a cyber-physical system.",
+        facts: [["ISBN","9780367337889"]], stack: ["Blockchain","CPS"] },
+      { name: "Decentralized voting system", sub: "Project · Feb – Jul 2024",
+        summary: "A decentralized, high-availability voting system built on smart contracts running on a private Ethereum blockchain.",
+        stack: ["Ethereum","Smart contracts","Solidity"] },
+      { name: "Decentralized crowdfunding", sub: "Award-winning B.E. project · 2020",
+        summary: "A crowdfunding platform on blockchain that removes intermediaries and makes every funding transaction transparent and trustless. Won a prize during my bachelor's.",
+        stack: ["Blockchain","Smart contracts"] }
+    ]
+  },
+  experience: {
+    status: 200, title: "Experience", big: true,
+    tile: "Four years of hands-on AppSec at Oracle, Teradata and novomind.",
+    lede: "Four years of application security across enterprise products, from API pentesting to CI/CD security and developer training.",
+    roles: [
+      { when: "Nov 2023 – Aug 2025", name: "Working Student, Application Security", org: "novomind AG · Hamburg",
+        pts: ["Vulnerability assessment and remediation for web and mobile apps, managing the full vulnerability lifecycle","Wrote AppSec guidelines and trained developers on secure coding and SDLC practices","Supported Zero Trust, access controls and Intune endpoint compliance"],
+        stack: ["Burp Suite","Snyk","OWASP ZAP","Intune"] },
+      { when: "Feb 2023 – Jul 2023", name: "Application Security Engineer", org: "Teradata · Hyderabad",
+        pts: ["SAST, DAST and SCA assessments across enterprise products with remediation plans","250+ CWE-based analyses, triage and technical reports with prioritised fixes","Ran developer security workshops and added security checks to CI pipelines"],
+        stack: ["Coverity","Black Duck","Invicti"] },
+      { when: "Jul 2021 – Jan 2023", name: "Associate Software Engineer", org: "Oracle · Hyderabad",
+        pts: ["Web and API penetration testing (REST/SOAP) against OWASP Top 10 and SANS Top 25","Automated security scans in Jenkins and GitLab CI","Server hardening, configuration and Oracle Cloud (OCI) deployments"],
+        stack: ["Burp Suite","OWASP ZAP","Postman","Jenkins","GitLab CI","OCI"] },
+      { when: "Jan 2021 – Jun 2021", name: "Application Security Project Intern", org: "Oracle · Hyderabad",
+        pts: ["Built RAVEN, a Python CLI for automated API vulnerability detection","DAST and SAST on Oracle Hospitality applications"],
+        stack: ["Python","Burp Suite","Postman"] }
+    ],
+    education: [
+      { when: "2023 – present", name: "M.Sc. Information and Communication Systems", org: "TU Hamburg",
+        pts: ["Secure and Dependable IT Systems specialisation","Top grades: Cybersecurity Data Science 1.0, Secure Software Engineering 1.3 (German scale, 1.0 = best)"] },
+      { when: "2017 – 2021", name: "B.E. Electronics and Communication", org: "PSG College of Technology · Coimbatore",
+        pts: ["Final grade 8.9 / 10"] }
+    ],
+    stack: [
+      ["Testing", ["Web & API pentesting","REST · SOAP · GraphQL","Thick-client testing","Burp Suite","OWASP ZAP","Postman"]],
+      ["Code & supply chain", ["SAST · DAST · SCA","Secure code review","NestJS · .NET","Coverity","Black Duck","Snyk"]],
+      ["Pipelines & cloud", ["Jenkins","GitLab CI","OCI","Azure","Linux hardening"]],
+      ["Languages", ["Python","Bash","C","C++"]]
+    ]
+  },
+  disclosures: {
+    status: 204, title: "Disclosures",
+    tile: "CVEs and responsible-disclosure findings.",
+    lede: "Public vulnerability disclosures and CVEs.",
+    empty: "No public advisories yet. Findings from employer and client work stay confidential. Independent findings will be published here once the vendor has shipped a fix."
+  },
+  writeups: {
+    status: 202, title: "Write-ups", draft: true,
+    tile: "Technical posts, CTF walkthroughs and research notes.",
+    lede: "Notes from the lab: how I test, what I break, what I learn.",
+    items: [
+      { name: "Evolving prompts for safer LLM code", sub: "Planned", summary: "What happened when static analysis became the fitness function for prompt optimisation." },
+      { name: "OverTheWire Natas: lessons per level", sub: "Planned", summary: "The web-security idea behind each level, without spoiling the passwords." },
+      { name: "Testing REST APIs with RAVEN", sub: "Planned", summary: "A walkthrough of automating API checks and running them in CI." }
+    ]
+  },
+  certs: {
+    status: 200, title: "Certifications",
+    tile: "CEH v11 certified, OSCP in progress, OCI Foundations.",
+    lede: "Certifications and focused training.",
+    items: [
+      { name: "CEH v11", sub: "Certified Ethical Hacker · EC-Council", badge: "Certified" },
+      { name: "OSCP", sub: "Offensive Security Certified Professional", badge: "In progress", pending: true },
+      { name: "OCI Foundations", sub: "Oracle Cloud Infrastructure", badge: "Certified" },
+      { name: "Threat Modeling for Security Professionals", sub: "Course", badge: "Completed" },
+      { name: "Database Security for Cyber Professionals", sub: "Course", badge: "Completed" },
+      { name: "SQL Server: Security, Encryption and Masking", sub: "Course", badge: "Completed" }
+    ]
+  },
+  now: {
+    status: 200, title: "Now",
+    tile: "What I'm learning and practising this month.",
+    lede: "What I'm working on right now.",
+    items: [
+      { name: "OSCP preparation", summary: "Building offensive skills beyond web and API testing." },
+      { name: "OverTheWire Natas", summary: "Working through the web-security wargame level by level." },
+      { name: "AWS security", summary: "Adding AWS to my OCI and Azure cloud experience." },
+      { name: "German", summary: "A2 today, aiming for B1 next." }
+    ]
+  },
+  contact: {
+    status: 200, title: "Contact",
+    tile: "Open to AppSec, product security, DevSecOps and AI security roles from Dec 2026.",
+    lede: "Open to application security, product security, DevSecOps and AI security roles in Germany and the EU. Available from 1 December 2026."
+  }
+};
+const QUOTES = [
+  ["Amateurs hack systems; people hack people.", "Bruce Schneier"],
+  ["The quieter you become, the more you are able to hear.", "Kali Linux motto"],
+  ["Security is a process, not a product.", "Bruce Schneier"],
+  ["Never trust user input.", "Every AppSec engineer, ever"],
+  ["Given enough eyeballs, all bugs are shallow.", "Eric S. Raymond"],
+  ["Trust, but verify.", "Russian proverb"],
+  ["Think like an attacker. Build like a defender.", "My working rule"]
+];
+const ORDER = ["tools","experience","research","certs","disclosures","writeups","now","contact"];
+/* ===== Edit everything above this line ===== */
+
+const $ = s => document.querySelector(s);
+const app = $("#app");
+const visible = arr => (arr||[]).filter(x => SHOW_DRAFTS || !x.draft);
+const reason = c => ({200:"OK",202:"Accepted",204:"No Content",404:"Not Found"})[c];
+const pillCls = c => c===202?"s202":c===204?"s204":"s2";
+const count = s => s.items ? visible(s.items).length : s.roles ? s.roles.length : null;
+const routes = ORDER.filter(k => SHOW_DRAFTS || !SECTIONS[k].draft);
+
+$("#routes").innerHTML = routes.map(r=>`<option value="${r}">`).join("");
+
+function hl(json){
+  return json.replace(/("(?:\\.|[^"\\])*")(\s*:)?|\b(\d+)\b/g,(m,s,colon,n)=> s ? (colon?`<span class="k">${s}</span>${colon}`:`<span class="s">${s}</span>`) : `<span class="n">${n}</span>`);
+}
+function rawBlock(key){
+  const s = SECTIONS[key]; const body = {};
+  for (const [k,v] of Object.entries(s)) if (!["tile","big","draft"].includes(k)) body[k] = Array.isArray(v) ? visible(v).map(({deep,todo,draft,...rest})=>rest) : v;
+  const json = JSON.stringify(body,null,2);
+  return `<div class="raw"><div class="http"><div class="http-top"><i></i><i></i><i></i><span>raw response</span></div>
+  <pre><span class="m">HTTP/1.1</span> <span class="${s.status===200?'ok':'n'}">${s.status} ${reason(s.status)}</span>
+<span class="d">Content-Type: application/json
+X-Content-Type-Options: nosniff
+Content-Security-Policy: default-src 'self'</span>
+
+${hl(json)}</pre></div></div>`;
+}
+function todoBox(t){ return SHOW_DRAFTS && t ? `<div class="todo"><b>BEFORE PUBLISHING</b><ul>${t.map(x=>`<li>${x}</li>`).join("")}</ul></div>` : ""; }
+function linksHtml(ls){
+  ls = visible(ls); if(!ls.length) return "";
+  return `<div class="links">${ls.map(l=> l.go ? `<a href="#${l.go}">${l.label}</a>` : `<a href="${l.href}" target="_blank" rel="noopener">${l.label}</a>`).join("")}</div>`;
+}
+function itemCard(it){
+  return `<article class="card">
+    <div class="card-top"><div><h3>${it.name}</h3>${it.sub?`<div class="sub">${it.sub}</div>`:""}</div>
+      ${it.badge?`<span class="pill ${it.pending?'s202':'s2'}">${it.badge}</span>`:""}${it.draft?`<span class="pill s202">draft</span>`:""}</div>
+    ${it.summary?`<p>${it.summary}</p>`:""}
+    ${it.facts?`<ul class="facts">${it.facts.map(([k,v])=>`<li><span>${k}</span>${v}</li>`).join("")}</ul>`:""}
+    ${it.stack?`<div class="chips">${it.stack.map(c=>`<span class="chip">${c}</span>`).join("")}</div>`:""}
+    ${it.deep?`<div class="deep">${it.deep}</div>`:""}
+    ${todoBox(it.todo)}
+    ${linksHtml(it.links)}
+  </article>`;
+}
+function roleCard(r){
+  return `<article class="card"><span class="when">${r.when}</span>
+    <div><h3>${r.name}</h3><div class="sub">${r.org}</div></div>
+    <ul class="pts">${r.pts.map(p=>`<li>${p}</li>`).join("")}</ul>
+    ${r.stack?`<div class="deep"><div class="chips">${r.stack.map(c=>`<span class="chip">${c}</span>`).join("")}</div></div>`:""}
+  </article>`;
+}
+
+function home(){
+  const ex = Object.values(SECTIONS);
+  app.innerHTML = `
+  <section class="cover" aria-label="Security quotes">
+    <canvas id="hex" aria-hidden="true"></canvas>
+    <div class="q">
+      <span class="lbl" id="qlbl">// quote 01 of ${String(QUOTES.length).padStart(2,"0")}</span>
+      <blockquote id="qt">${QUOTES[0][0]}</blockquote>
+      <cite id="qby">— ${QUOTES[0][1]}</cite>
+      <div class="qdots">${QUOTES.map((_,i)=>`<button type="button" data-q="${i}" aria-label="Quote ${i+1}" aria-current="${i===0}"></button>`).join("")}</div>
+    </div>
+  </section>
+  <section class="hero">
+    <div>
+      <div class="eyebrow"><span class="live"><i></i>Open to work</span><span>${PROFILE.role} · Hamburg</span></div>
+      <h1>Roshan<span>Rajkumar</span></h1>
+      <p class="lede">I break web apps and APIs <strong>before attackers do</strong>, and build the tools that make it repeatable.</p>
+      <div class="ctas"><a class="btn primary" href="#tools">See my tools</a><a class="btn" href="#contact">Get in touch</a></div>
+    </div>
+    <div class="http" aria-label="Profile as an HTTP exchange">
+      <div class="http-top"><i></i><i></i><i></i><span>intercepted · 1 request</span></div>
+<pre>${[
+`<span class="m">GET</span> /roshan HTTP/1.1`,
+`<span class="d">Host: roshan.sec</span>`,
+`<span class="d">Accept: application/json</span>`,
+``,
+`HTTP/1.1 <span class="ok">200 OK</span>`,
+`<span class="d">X-Role: Application Security Engineer</span>`,
+`<span class="d">X-Available-From: ${PROFILE.available_from}</span>`,
+``,
+`{`,
+`  <span class="k">"focus"</span>: [<span class="s">"API security"</span>, <span class="s">"DevSecOps"</span>,`,
+`            <span class="s">"LLM security"</span>],`,
+`  <span class="k">"years_hands_on"</span>: <span class="n">4</span>,`,
+`  <span class="k">"certs"</span>: [<span class="s">"CEH v11"</span>, <span class="s">"OSCP (in progress)"</span>],`,
+`  <span class="k">"built"</span>: [<span class="s">"RAVEN"</span>, <span class="s">"secure-prompt-optimizer"</span>]`,
+`}`].map((l,i)=>`<span class="ln" style="animation-delay:${i*55}ms">${l||" "}</span>`).join("")}</pre>
+    </div>
+  </section>
+  <section class="stats" aria-label="Highlights">
+    <div class="stat"><b>4 yrs</b><span>hands-on application security</span></div>
+    <div class="stat"><b>250+</b><span>CWE analyses triaged at Teradata</span></div>
+    <div class="stat"><b>3</b><span>enterprises: Oracle, Teradata, novomind</span></div>
+    <div class="stat"><b>1</b><span>book chapter, CRC Press</span></div>
+  </section>
+  <div class="sec-h"><h2>Endpoints</h2><p>Click any endpoint to open it.</p></div>
+  <section class="grid">
+    ${routes.map(k=>{const s=SECTIONS[k],n=count(s);
+      return `<button class="tile${s.big?' big':''}" data-go="${k}">
+        <span class="path"><b>GET</b>/${k}</span><h3>${s.title}</h3><p>${s.tile}</p>
+        <span class="pill ${pillCls(s.status)}">${s.status} ${reason(s.status)}${n?` · ${n}`:""}</span></button>`;}).join("")}
+  </section>`;
+  $("#foot").textContent = "HTTP/1.1 200 OK";
+  fillLast(); startCover();
+}
+/* cover: quote rotation + hex-dump canvas */
+const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
+let qi = 0, qTimer = null, raf = null;
+function showQuote(i){
+  qi = (i + QUOTES.length) % QUOTES.length;
+  const qt = $("#qt"); if (!qt) return;
+  qt.classList.add("out");
+  setTimeout(() => {
+    qt.textContent = QUOTES[qi][0]; $("#qby").textContent = "— " + QUOTES[qi][1];
+    $("#qlbl").textContent = `// quote ${String(qi+1).padStart(2,"0")} of ${String(QUOTES.length).padStart(2,"0")}`;
+    document.querySelectorAll("[data-q]").forEach((b,j) => b.setAttribute("aria-current", j===qi));
+    qt.classList.remove("out");
+  }, calm ? 0 : 420);
+}
+function startCover(){
+  clearInterval(qTimer); cancelAnimationFrame(raf);
+  qTimer = setInterval(() => showQuote(qi + 1), 6500);
+  const c = $("#hex"); if (!c) return;
+  const ctx = c.getContext("2d"), H = "0123456789abcdef", dpr = Math.min(devicePixelRatio || 1, 2);
+  let w, h, cols, rows, grid, off = 0;
+  const byte = () => H[Math.random()*16|0] + H[Math.random()*16|0];
+  function size(){
+    w = c.clientWidth; h = c.clientHeight; c.width = w*dpr; c.height = h*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
+    cols = Math.ceil(w/26); rows = Math.ceil(h/18) + 2;
+    grid = Array.from({length: rows}, () => Array.from({length: cols}, () => ({b: byte(), hot: Math.random() < .035})));
+  }
+  function draw(){
+    ctx.clearRect(0,0,w,h); ctx.font = "12px 'JetBrains Mono', monospace";
+    grid.forEach((row,r) => row.forEach((cell,k) => {
+      const y = r*18 - off;
+      ctx.fillStyle = cell.hot ? "rgba(255,92,138,.55)" : "rgba(138,146,255," + (0.07 + (k % 8 === 0 ? .06 : 0)) + ")";
+      ctx.fillText(cell.b, k*26 + 8, y);
+    }));
+  }
+  function tick(){
+    off += 0.25;
+    if (off >= 18){ off = 0; grid.shift(); grid.push(Array.from({length: cols}, () => ({b: byte(), hot: Math.random() < .035}))); }
+    if (Math.random() < .3){ const r = grid[Math.random()*rows|0], k = Math.random()*cols|0; if (r && r[k]) r[k].b = byte(); }
+    draw(); raf = requestAnimationFrame(tick);
+  }
+  size(); draw();
+  if (!calm) raf = requestAnimationFrame(tick);
+  window.onresize = () => { size(); draw(); fillLast(); };
+}
+/* stretch the last tile so the endpoint grid never ends on a half-empty row */
+function fillLast(){
+  const g = document.querySelector(".grid"); if (!g) return;
+  const tiles = [...g.children]; tiles.forEach(t => t.style.gridColumn = "");
+  const cols = getComputedStyle(g).gridTemplateColumns.split(" ").length; if (cols < 2) return;
+  const span = t => t.classList.contains("big") ? Math.min(2, cols) : 1;
+  let used = 0;
+  tiles.forEach(t => { const sp = span(t); if (used + sp > cols) used = 0; used = (used + sp) % cols; });
+  if (used > 0){ const last = tiles[tiles.length-1]; last.style.gridColumn = `span ${cols - used + span(last)}`; }
+}
+
+
+function section(key){
+  const s = SECTIONS[key];
+  let body = "";
+  if (key==="experience"){
+    body = `<div class="tl">${s.roles.map(roleCard).join("")}</div>
+      <h3 class="group">Education</h3><div class="tl">${s.education.map(roleCard).join("")}</div>
+      <h3 class="group">Toolbox</h3><div class="stack">${s.stack.map(([h,c])=>`<div><h4>${h}</h4><div class="chips">${c.map(x=>`<span class="chip">${x}</span>`).join("")}</div></div>`).join("")}</div>`;
+  } else if (key==="disclosures"){
+    body = `<div class="empty"><span class="code">204</span><p>${s.empty}</p>${todoBox(["When you get a CVE: add ID, product, CWE, CVSS score, a 2-line impact summary and the advisory link"])}</div>`;
+  } else if (key==="contact"){
+    body = `<div class="cards" style="max-width:640px">
+      <div class="copy"><code id="mail">${PROFILE.email}</code><button class="btn" type="button" id="cp">Copy email</button></div>
+      <div class="links"><a href="${PROFILE.linkedin}" target="_blank" rel="noopener">LinkedIn →</a>${SHOW_DRAFTS||GITHUB!=="YOUR-USERNAME"?`<a href="https://github.com/${GITHUB}" target="_blank" rel="noopener">GitHub →</a>`:""}</div></div>`;
+  } else {
+    body = `<div class="cards">${visible(s.items).map(itemCard).join("")}</div>`;
+  }
+  app.innerHTML = `<section class="view">
+    <a class="back" href="#">← GET /</a>
+    <div class="vhead"><span class="path"><b>GET</b>/${key} <span class="pill ${pillCls(s.status)}">${s.status} ${reason(s.status)}</span></span>
+      <h2>${s.title}</h2><p>${s.lede}</p>
+      <span class="hint">Technical reader? <button type="button" data-mode="eng">Switch to Engineer view</button> for the raw response and how things work.</span></div>
+    ${body}
+    ${rawBlock(key)}
+  </section>`;
+  $("#foot").textContent = `HTTP/1.1 ${s.status} ${reason(s.status)}`;
+  const cp = $("#cp"); if (cp) cp.onclick = () => {
+    const done = () => cp.textContent = "Copied";
+    navigator.clipboard?.writeText(PROFILE.email).then(done).catch(()=>{ const r=document.createRange(); r.selectNodeContents($("#mail")); getSelection().removeAllRanges(); getSelection().addRange(r); cp.textContent="Selected, press Ctrl+C"; });
+  };
+}
+
+function notFound(path){
+  app.innerHTML = `<section class="view"><a class="back" href="#">← GET /</a>
+    <div class="empty"><span class="code">404</span><p>No endpoint called <span class="mono">/${path}</span>. Try one of: ${routes.map(r=>`<a href="#${r}">/${r}</a>`).join(", ")}.</p></div></section>`;
+  $("#foot").textContent = "HTTP/1.1 404 Not Found";
+}
+
+function render(){
+  clearInterval(qTimer); cancelAnimationFrame(raf);
+  const h = location.hash.replace(/^#/, "");
+  if (!h) home(); else if (routes.includes(h)) section(h); else notFound(h);
+  window.scrollTo({top:0});
+}
+function go(k){ if (location.hash.replace("#","")===k) render(); else location.hash = k; }
+
+function setMode(m){
+  document.body.classList.toggle("eng", m==="eng");
+  $("#mHr").setAttribute("aria-pressed", m!=="eng"); $("#mEng").setAttribute("aria-pressed", m==="eng");
+  try{ localStorage.setItem("mode", m); }catch(e){}
+}
+$("#mHr").onclick = () => setMode("hr");
+$("#mEng").onclick = () => setMode("eng");
+document.addEventListener("click", e => {
+  const t = e.target.closest("[data-go]"); if (t){ e.preventDefault(); go(t.dataset.go); }
+  const m = e.target.closest("[data-mode]"); if (m) setMode(m.dataset.mode);
+  const q = e.target.closest("[data-q]"); if (q){ clearInterval(qTimer); qTimer = setInterval(() => showQuote(qi + 1), 6500); showQuote(+q.dataset.q); }
+});
+$("#cmdForm").addEventListener("submit", e => { e.preventDefault(); const v = $("#cmd").value.trim().replace(/^\/+/,"").toLowerCase(); $("#cmd").value=""; $("#cmd").blur(); go(v); });
+document.addEventListener("keydown", e => { if (e.key==="/" && !/input|textarea/i.test(document.activeElement.tagName)){ e.preventDefault(); $("#cmd").focus(); } });
+window.addEventListener("hashchange", render);
+try{ setMode(localStorage.getItem("mode")||"hr"); }catch(e){ setMode("hr"); }
+render();
+</script>
+
+</body>
+</html>
