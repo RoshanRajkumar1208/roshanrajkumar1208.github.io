@@ -241,13 +241,25 @@ const SECTIONS = {
     tile: "Security tools I built to automate API testing and secure-code checks.",
     lede: "Tools I built to make security testing faster and repeatable. Click into the technical view for how each one works.",
     items: [
-      { name: "RAVEN", sub: "REST API Validation Engine",
-        summary: "A command-line tool that automates vulnerability detection and security testing for REST APIs. I built it during my application security internship at Oracle to take repetitive API checks off the manual test list.",
-        facts: [["Year","2021"],["Language","Python"],["Interface","CLI"],["Target","REST APIs"]],
-        stack: ["Python","REST","API security","Automation"],
-        deep: `<h4>How it works</h4><p>RAVEN takes REST endpoints as input, runs automated security checks against them and reports what it finds, so the same checks can run on every release instead of by hand.</p>`,
-        todo: ["Push the code to GitHub and add the repo link","List the exact checks RAVEN runs (auth, injection, input validation…)","Add a short demo GIF or sample terminal output from a real run","Add a 'Run in CI' example (GitHub Action)"],
-        links: [{ label: "Repository →", href: `https://github.com/${GITHUB}/raven`, draft: true }] },
+      { name: "RAVEN", sub: "REST API Validation Engine · open source · v4",
+        summary: "A security scanner for REST APIs. Give it an OpenAPI, Swagger, Postman, API Blueprint or HAR file and it tests every endpoint for misconfigurations (CORS, TLS, security headers, cookies, authentication enforcement) and for places where the API does not do what its own documentation promises. I first built it during my AppSec internship at Oracle in 2021; v4 is my complete open-source rewrite.",
+        facts: [["First built","2021"],["Rewritten","2026"],["Checks","13"],["Inputs","6 formats"],["Language","Python"]],
+        stack: ["Python","OpenAPI","Postman","OWASP API Top 10","SARIF","GitHub Actions"],
+        deep: `<h4>How a scan works</h4>
+          <div class="pipe">
+            <div class="step"><b>01 · load</b>Detects the format and turns it into endpoints, params, bodies and auth rules</div><span class="arrow">→</span>
+            <div class="step"><b>02 · baseline</b>One normal request per endpoint with realistic values</div><span class="arrow">→</span>
+            <div class="step"><b>03 · check</b>13 passive and active checks, changing one thing at a time</div><span class="arrow">→</span>
+            <div class="step"><b>04 · report</b>HTML, JSON, SARIF and Markdown, with credentials masked</div>
+          </div>
+          <h4>Engineering choices</h4>
+          <ul class="pts">
+            <li>Safe by default: write requests (POST/PUT/PATCH/DELETE) only with <code>--unsafe</code>, and a test proves it.</li>
+            <li>Every finding carries evidence, CWE, an OWASP API Top 10 (2023) category and a concrete fix.</li>
+            <li>Built for CI: SARIF for GitHub code scanning and <code>--fail-on high</code> to block a release.</li>
+            <li>Ships with a deliberately misconfigured practice API, plus 44 tests on Python 3.9–3.13 for Linux, Windows and macOS.</li>
+          </ul>`,
+        links: [{ label: "Repository →", href: `https://github.com/${GITHUB}/raven` }, { label: "Read the README →", href: `https://github.com/${GITHUB}/raven#readme` }] },
       { name: "Secure-Code Prompt Optimizer", sub: "GrIPS × EvoPrompt · M.Sc. research",
         summary: "A framework that evolves the prompts given to large language models so the Python code they write contains fewer security flaws. Static analysis scores every generated program, and those scores steer the next round of prompts.",
         facts: [["Year","2024–25"],["Where","TU Hamburg"],["Language","Python"],["Methods","GrIPS, EvoPrompt"]],
@@ -307,7 +319,7 @@ const SECTIONS = {
         pts: ["Web and API penetration testing (REST/SOAP) against OWASP Top 10 and SANS Top 25","Automated security scans in Jenkins and GitLab CI","Server hardening, configuration and Oracle Cloud (OCI) deployments"],
         stack: ["Burp Suite","OWASP ZAP","Postman","Jenkins","GitLab CI","OCI"] },
       { when: "Jan 2021 – Jun 2021", name: "Application Security Project Intern", org: "Oracle · Hyderabad",
-        pts: ["Built RAVEN, a Python CLI for automated API vulnerability detection","DAST and SAST on Oracle Hospitality applications"],
+        pts: ["Built RAVEN, a Python CLI for automated API security testing (now open source, rewritten in 2026)","DAST and SAST on Oracle Hospitality applications"],
         stack: ["Python","Burp Suite","Postman"] }
     ],
     education: [
