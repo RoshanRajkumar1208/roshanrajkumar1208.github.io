@@ -260,26 +260,31 @@ const SECTIONS = {
             <li>Ships with a deliberately misconfigured practice API, plus 44 tests on Python 3.9–3.13 for Linux, Windows and macOS.</li>
           </ul>`,
         links: [{ label: "Repository →", href: `https://github.com/${GITHUB}/raven` }, { label: "Read the README →", href: `https://github.com/${GITHUB}/raven#readme` }] },
-      { name: "Secure-Code Prompt Optimizer", sub: "GrIPS × EvoPrompt · M.Sc. research",
-        summary: "A framework that evolves the prompts given to large language models so the Python code they write contains fewer security flaws. Static analysis scores every generated program, and those scores steer the next round of prompts.",
-        facts: [["Year","2024–25"],["Where","TU Hamburg"],["Language","Python"],["Methods","GrIPS, EvoPrompt"]],
-        stack: ["LLMs","Prompt engineering","Genetic algorithms","SAST","Python"],
+      { name: "Secure Prompt Optimizer", sub: "GrIPS × EvoPrompt · M.Sc. research project · open source",
+        summary: "Can an LLM write safer code just by changing how we ask? This framework evolves the instruction placed in front of coding tasks with two genetic search algorithms, GrIPS and EvoPrompt, and uses the Bandit security scanner as the fitness function. No fine-tuning: it works with any model. On CodeLlama-7B and DeepSeek-Coder-33B, EvoPrompt cut weaknesses per line of code by 31% and 21%.",
+        facts: [["Result","−31% weakness density"],["Research","2024–25, TU Hamburg"],["Rebuilt","2026 (v2)"],["Models","CodeLlama, DeepSeek-Coder"],["Dataset","LLMSecEval · 18 CWEs"]],
+        stack: ["LLMs","AI security","Genetic algorithms","Prompt optimization","Bandit SAST","Python"],
         deep: `<h4>Pipeline</h4>
           <div class="pipe">
-            <div class="step"><b>01 · population</b>Set of candidate prompts for a coding task</div><span class="arrow">→</span>
-            <div class="step"><b>02 · generate</b>LLM writes Python code from each prompt</div><span class="arrow">→</span>
-            <div class="step"><b>03 · scan</b>Static analysis finds vulnerabilities in the code</div><span class="arrow">→</span>
-            <div class="step"><b>04 · score</b>Fewer findings = fitter prompt</div><span class="arrow">→</span>
-            <div class="step"><b>05 · evolve</b>Best prompts are edited or recombined</div>
+            <div class="step"><b>01 · prompts</b>5 hand-written seeds start the population</div><span class="arrow">→</span>
+            <div class="step"><b>02 · generate</b>The LLM writes code for 36 security-sensitive tasks</div><span class="arrow">→</span>
+            <div class="step"><b>03 · scan</b>Bandit weighs each finding by severity × confidence</div><span class="arrow">→</span>
+            <div class="step"><b>04 · select</b>The 5 safest prompts survive</div><span class="arrow">→</span>
+            <div class="step"><b>05 · evolve</b>GrIPS edits words; EvoPrompt lets the LLM mutate and cross-breed</div>
           </div>
-          <div class="loop">↺ repeat until the prompt stops improving</div>
+          <div class="loop">↺ repeat for several generations, then test the winners on 114 unseen tasks</div>
           <h4>Two optimizers compared</h4>
           <div class="cmp">
-            <div><b>GrIPS</b>Rule-based search. Makes small edits to the instruction (add, delete, swap, paraphrase phrases) and keeps edits that lower the vulnerability score.</div>
-            <div><b>EvoPrompt</b>LLM-guided evolution. The LLM itself performs crossover and mutation on the best prompts to breed the next generation.</div>
-          </div>`,
-        todo: ["Add the result: how much did vulnerabilities drop vs. the baseline prompt?","Name the SAST scanner and the LLM(s) you used","Link the repo and the thesis/report PDF"],
-        links: [{ label: "Repository →", href: `https://github.com/${GITHUB}/secure-prompt-optimizer`, draft: true }] },
+            <div><b>GrIPS</b>Rule-based search: delete, add, swap and paraphrase edits. Transparent and cheap, but it stays close to the original wording.</div>
+            <div><b>EvoPrompt</b>LLM-guided evolution: the model mutates prompts and merges pairs of them. Fluent and far-ranging, but less predictable.</div>
+          </div>
+          <h4>What rebuilding it taught me</h4>
+          <ul class="pts">
+            <li>Found that the original fitness function could be gamed: code that does not even parse scored as well as clean code. The results confirmed it: GrIPS's "best" prompts made CodeLlama produce 94% less valid code. v2 closes that reward-hacking loophole.</li>
+            <li>Fixed ten defects in total, including edit operators that could loop forever, each with a regression test.</li>
+            <li>Added lineage tracking to show which kind of edit produces winning prompts, held-out evaluation, resumable runs, and an offline demo.</li>
+          </ul>`,
+        links: [{ label: "Repository →", href: `https://github.com/${GITHUB}/secure-prompt-optimizer` }, { label: "Read the audit →", href: `https://github.com/${GITHUB}/secure-prompt-optimizer/blob/main/docs/v1-audit.md` }] },
       { draft: true, name: "Next build", sub: "In the lab",
         summary: "Slot for the next public tool, for example a Burp Suite extension or a GitHub Action that runs RAVEN on every pull request.",
         facts: [["Status","Planned"]], stack: ["Burp Suite","Java/Kotlin","GitHub Actions"] }
@@ -292,7 +297,7 @@ const SECTIONS = {
     items: [
       { name: "Secure code generation with LLMs", sub: "Research project · TU Hamburg · Nov 2024 – Jun 2025",
         summary: "Implemented and compared GrIPS and EvoPrompt for refining prompts so that LLM-generated Python code has fewer vulnerabilities, with static application security testing in the loop.",
-        stack: ["AI security","Prompt optimization","SAST"], links:[{label:"See the tool →", go:"tools"}] },
+        stack: ["AI security","Prompt optimization","SAST"], links:[{label:"See the project →", go:"tools"}, {label:"Repository →", href:`https://github.com/${GITHUB}/secure-prompt-optimizer`}] },
       { name: "Blockchain-enabled Cyber Physical System: SmartGym", sub: "Book chapter · CRC Press, Taylor & Francis · 2019",
         summary: "Chapter 10 of “Smart Cyber Physical Systems: Advances, Challenges and Opportunities”. A case study on using blockchain in a cyber-physical system.",
         facts: [["ISBN","9780367337889"]], stack: ["Blockchain","CPS"] },
